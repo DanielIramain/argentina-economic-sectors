@@ -1,57 +1,70 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import io
 import os
-import glob
-import subprocess
 
-import requests
+import dlt
 import pandas as pd
+import requests
 
-sectors = ['apicola', 'tabaco', 'te', 'trigo', 'maiz', 'energias-alternativas', 'arroz', 'algodonera-textil', 'fruticola-fruta-de-carozo', 'construccion', 'forestal-papel-y-muebles', 'vitivinicultura', 'telecomunicaciones', 'comercio-interno', 'automotriz-y-autopartista', 'maquinaria-agricola', 'servicios-turisticos', 'mineria-metalifera-y-rocas-de-aplicacion', 'hidrocarburos', 'legumbres', 'azucar', 'carnica-porcina', 'limon', 'lactea', 'fruticola-citricos-dulces', 'carnica-vacuna', 'fruticola-manzana-y-pera', 'ovinos-lana-y-carne', 'software-y-servicios-informaticos', 'oleaginosa', 'servicios-de-investigacion-y-desarrollo', 'industrias-culturales', 'petroquimica-plastica', 'carnica-aviar', 'yerba-mate', 'pesca-y-puertos-pesqueros', 'olivicola']
-url_base = 'https://github.com/DanielIramain/argentina-economic-sectors/releases/download/v1.0.0/'
-download_dir = './data'
+# Configuraciones
+OWNER = "DanielIramain"
+REPO = "argentina-economic-sectors"
+TAG = "v1.0.0"
+SECTORS = ['apicola', 'tabaco', 'te', 'trigo', 'maiz', 'energias-alternativas', 'arroz', 'algodonera-textil', 'fruticola-fruta-de-carozo', 'construccion', 'forestal-papel-y-muebles', 'vitivinicultura', 'telecomunicaciones', 'comercio-interno', 'automotriz-y-autopartista', 'maquinaria-agricola', 'servicios-turisticos', 'mineria-metalifera-y-rocas-de-aplicacion', 'hidrocarburos', 'legumbres', 'azucar', 'carnica-porcina', 'limon', 'lactea', 'fruticola-citricos-dulces', 'carnica-vacuna', 'fruticola-manzana-y-pera', 'ovinos-lana-y-carne', 'software-y-servicios-informaticos', 'oleaginosa', 'servicios-de-investigacion-y-desarrollo', 'industrias-culturales', 'petroquimica-plastica', 'carnica-aviar', 'yerba-mate', 'pesca-y-puertos-pesqueros', 'olivicola']
+URL_BASE = f'https://github.com/{OWNER}/{REPO}/releases/download/{TAG}/'
 
-if not os.path.exists(download_dir):
-    os.makedirs(download_dir)
-    print(f"Created directory: {download_dir}")
+def clean_format_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Limpia y formatea el DataFrame antes de la carga."""
+    df.columns = [
+        'sector_id', 'sector_name', 'variable_id', 'activity_product_name', 
+        'indicator', 'unit_of_measure', 'source', 'name_frequency', 
+        'coverage_name', 'reach_type', 'reach_id', 'reach_name', 'index_time', 'value'
+    ]
 
-def download_file(url_base, download_dir):
-    for s in sectors:
-        filename = s + '.csv'
-        download_url = url_base + filename 
+    # Normalización de texto
+    cols = df.select_dtypes(include=['object']).columns
+    df[cols] = df[cols].apply(
+        lambda x: x.str.normalize('NFKD')
+                   .str.encode('ascii', errors='ignore')
+                   .str.decode('utf-8')
+                   .str.lower()
+    )
+    
+    # Eliminación de columnas y limpieza de nulos
+    df = df.drop(columns=['reach_id'], errors='ignore')
+    df['value'] = df['value'].fillna(0)
+    
+    return df
+
+@dlt.resource(name="economic_sectors", write_disposition="replace")
+def economic_sectors_resource():
+    for sector in SECTORS:
+        filename = f"{sector}.csv"
+        download_url = f"{URL_BASE}{filename}"
         
-        # Local path for data storage (./data + filename)
-        local_path = os.path.join(download_dir, filename)
+        print(f"Descargando y procesando: {filename}...")
+        response = requests.get(download_url)
+        response.raise_for_status()
+        
+        # Leemos el CSV en memoria (usando latin1 como especificaste)
+        df = pd.read_csv(io.BytesIO(response.content), encoding='latin1')
+        
+        # Aplicamos la transformación antes de enviar los datos
+        df_cleaned = clean_format_data(df)
+        
+        # Convertimos a lista de diccionarios (formato preferido de dlt) 
+        # o simplemente yield el DataFrame
+        yield df_cleaned
 
-        try:
-            print(f"Downloading: {download_url}...")
-            with requests.get(download_url, stream=True) as r:
-                r.raise_for_status()
-                
-                # Open the file in binary mode and write the content in chunks
-                with open(local_path, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=8192):
-                        f.write(chunk)
-            print(f"Successfully downloaded: {filename} to {local_path}")
+# Ejecución del Pipeline
+pipeline = dlt.pipeline(
+    pipeline_name="argentina_economic_sectors",
+    destination="postgres",
+    dataset_name="economic_data",
+    )
 
-        except requests.exceptions.RequestException as e:
-            print(f"Error downloading {filename}: {e}")
-        except IOError as e:
-            print(f"Error saving file {filename} locally: {e}")
+load_info = pipeline.run(economic_sectors_resource())
 
-def create_dataframe(files_path: str) -> pd.DataFrame:
-    # Get all csv files names in a list
-    csv_files = glob.glob(files_path + "/*.csv")
-
-    # Concat all csv files (sectors) in a single Pandas DataFrame
-    # Files encoding: latin1
-    df_sectors = pd.concat((pd.read_csv(f, encoding='latin1') for f in csv_files), ignore_index=True)
-    # Sectors .csv
-    sectors_data = df_sectors.to_csv(os.path.join(files_path, 'sectors.csv'), index=False, encoding='latin1')
-
-    return df_sectors, sectors_data
-
-if __name__ == "__main__":
-    download_file(url_base, download_dir)
-    df = create_dataframe(download_dir)
+print(load_info)
