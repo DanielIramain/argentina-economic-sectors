@@ -211,8 +211,8 @@ __marimo__/
 
 # Secrets
 *.txt
+secrets.toml
 
 # Temporal
 get_data.ipynb
 ingestion.ipynb
-economic-sectors.ingestion.yaml

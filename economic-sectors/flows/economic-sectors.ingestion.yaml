@@ -1,0 +1,25 @@
+id: ingestion
+namespace: economic-sectors
+
+tasks:
+  - id: download-data
+    type: io.kestra.plugin.scripts.python.Commands
+    env:
+      DESTINATION__POSTGRES__CREDENTIALS__HOST: "pgdatabase"
+      DESTINATION__POSTGRES__CREDENTIALS__USERNAME: ${POSTGRES_USER}
+      DESTINATION__POSTGRES__CREDENTIALS__PASSWORD: ${POSTGRES_PASSWORD}
+      DESTINATION__POSTGRES__CREDENTIALS__DATABASE: "sectors"
+    namespaceFiles:
+      enabled: true
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    dependencies:
+      - dlt
+      - pandas
+      - pyarrow
+      - requests
+      - psycopg2
+    commands:
+      - python /files/ingestion.py
+    outputFiles:
+      - "data/sectors.csv"
