@@ -16,15 +16,15 @@ SECTORS = ['apicola', 'tabaco', 'te', 'trigo', 'maiz', 'energias-alternativas', 
 URL_BASE = f'https://github.com/{OWNER}/{REPO}/releases/download/{TAG}/'
 
 def clean_format_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Limpia y formatea el DataFrame antes de la carga."""
+    """Cleans and formats data before loading."""
     df.columns = [
         'sector_id', 'sector_name', 'variable_id', 'activity_product_name', 
         'indicator', 'unit_of_measure', 'source', 'name_frequency', 
         'coverage_name', 'reach_type', 'reach_id', 'reach_name', 'index_time', 'value'
     ]
 
-    # Normalización de texto
-    cols = df.select_dtypes(include=['object']).columns
+    # Text normalization: lowercase, remove accents, and strip whitespace
+    cols = df.select_dtypes(include=[object]).columns
     df[cols] = df[cols].apply(
         lambda x: x.str.normalize('NFKD')
                    .str.encode('ascii', errors='ignore')
@@ -32,7 +32,7 @@ def clean_format_data(df: pd.DataFrame) -> pd.DataFrame:
                    .str.lower()
     )
     
-    # Eliminación de columnas y limpieza de nulos
+    # Drop column and fill NaN values
     df = df.drop(columns=['reach_id'], errors='ignore')
     df['value'] = df['value'].fillna(0)
     
@@ -44,27 +44,24 @@ def economic_sectors_resource():
         filename = f"{sector}.csv"
         download_url = f"{URL_BASE}{filename}"
         
-        print(f"Descargando y procesando: {filename}...")
+        print(f"Downloading-processing: {filename}...")
         response = requests.get(download_url)
         response.raise_for_status()
         
-        # Leemos el CSV en memoria (usando latin1 como especificaste)
+        # read CSV on memory (encoding=latin1 to handle special characters)
         df = pd.read_csv(io.BytesIO(response.content), encoding='latin1')
         
-        # Aplicamos la transformación antes de enviar los datos
+        # Transform before loading
         df_cleaned = clean_format_data(df)
         
-        # Convertimos a lista de diccionarios (formato preferido de dlt) 
-        # o simplemente yield el DataFrame
         yield df_cleaned
 
-# Ejecución del Pipeline
 pipeline = dlt.pipeline(
     pipeline_name="argentina_economic_sectors",
     destination="postgres",
-    dataset_name="economic_data",
+    dataset_name="sectors",
     )
 
-load_info = pipeline.run(economic_sectors_resource())
+load_info = pipeline.run(economic_sectors_resource(), table_name="economic_sectors")
 
 print(load_info)

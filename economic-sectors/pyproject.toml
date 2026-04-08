@@ -5,7 +5,7 @@ description = "Environment for economic-sectors repository"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "dlt[postgres]>=1.24.0",
+    "dlt[parquet,postgres]>=1.24.0",
     "pandas>=3.0.1",
     "requests>=2.33.0",
 ]
