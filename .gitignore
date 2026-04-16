@@ -143,6 +143,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.env_encoded
 
 # Spyder project settings
 .spyderproject
@@ -212,6 +213,7 @@ __marimo__/
 # Secrets
 *.txt
 secrets.toml
+*.json
 
 # Temporal
 get_data.ipynb
