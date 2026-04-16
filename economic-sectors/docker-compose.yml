@@ -14,7 +14,7 @@ services:
     volumes:
       - sectors_postgres_data:/var/lib/postgresql
     environment:
-      POSTGRES_USER: root
+      POSTGRES_USER: /run/secrets/db_user
       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
       POSTGRES_DB: sectors
     ports:
@@ -23,6 +23,7 @@ services:
       kestra:
         condition: service_started
     secrets:
+      - db_user
       - db_password
 
   kestra_postgres:
@@ -31,7 +32,7 @@ services:
       - kestra_postgres_data:/var/lib/postgresql
     environment:
       POSTGRES_DB: kestra
-      POSTGRES_USER: kestra
+      POSTGRES_USER: ${KESTRA_POSTGRES_USER}
       POSTGRES_PASSWORD: ${KESTRA_POSTGRES_PASSWORD}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
@@ -41,8 +42,7 @@ services:
 
   kestra:
     build: .
-    env_file:
-      - .env
+    env_file: .env_encoded
     pull_policy: always
     user: "root"
     volumes:
@@ -56,12 +56,12 @@ services:
           postgres:
             url: jdbc:postgresql://kestra_postgres:5432/kestra
             driverClassName: org.postgresql.Driver
-            username: kestra
+            username: ${KESTRA_POSTGRES_USER}
             password: ${KESTRA_POSTGRES_PASSWORD}
         kestra:
           server:
             basicAuth:
-              username: "admin@gmail.com"
+              username: ${KESTRA_USER} # "example@example.com"
               password: ${KESTRA_PASSWORD}
           repository:
             type: postgres
@@ -83,5 +83,7 @@ services:
         condition: service_started
 
 secrets:
+  db_user:
+    file: ./secrets/db_user.txt
   db_password:
     file: ./secrets/db_password.txt

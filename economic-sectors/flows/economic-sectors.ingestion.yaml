@@ -1,13 +1,27 @@
-id: ingestion
+id: load_economic_sectors
 namespace: economic-sectors
 
+variables:
+    gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/sector_data.csv"
+
 tasks:
-  - id: download-data
+  - id: create_gcs_bucket
+    type: io.kestra.plugin.gcp.gcs.CreateBucket
+    ifExists: SKIP
+    storageClass: STANDARD
+    name: "{{kv('GCP_BUCKET_NAME')}}"
+
+  - id: create_bq_dataset
+    type: io.kestra.plugin.gcp.bigquery.CreateDataset
+    name: "{{kv('GCP_DATASET')}}"
+    ifExists: SKIP
+
+  - id: download_data
     type: io.kestra.plugin.scripts.python.Commands
     env:
       DESTINATION__POSTGRES__CREDENTIALS__HOST: "pgdatabase"
-      DESTINATION__POSTGRES__CREDENTIALS__USERNAME: ${POSTGRES_USER}
-      DESTINATION__POSTGRES__CREDENTIALS__PASSWORD: ${POSTGRES_PASSWORD}
+      DESTINATION__POSTGRES__CREDENTIALS__USERNAME: ${POSTGRES_USERNAME} #"example"
+      DESTINATION__POSTGRES__CREDENTIALS__PASSWORD: "{{secret('POSTGRES_PASSWORD')}}" #"example"
       DESTINATION__POSTGRES__CREDENTIALS__DATABASE: "sectors"
     namespaceFiles:
       enabled: true
@@ -23,3 +37,42 @@ tasks:
       - python /files/ingestion.py
     outputFiles:
       - "data/sectors.csv"
+  
+  - id: gcp_bucket_upload
+    type: io.kestra.plugin.gcp.gcs.Upload
+    from: "{{ outputs.download_data.outputFiles['data/sectors.csv'] }}"
+    to: gs://argentina-economic-sectors-bucket/sector_data.csv
+
+  - id: bq_external_sectors_table
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      CREATE OR REPLACE EXTERNAL TABLE `{{kv('GCP_PROJECT_ID')}}.{{kv('GCP_DATASET')}}.external_sectors`
+      (
+        sector_id NUMERIC OPTIONS (description = 'Economic Sector ID.'),
+        sector_name STRING OPTIONS (description = 'The name of the economic sector.'),
+        variable_id NUMERIC OPTIONS (description = 'Variable ID.'),
+        activity_product_name STRING OPTIONS (description = 'Economic activity or product name inside that sector.'),
+        indicator STRING OPTIONS (description = 'Indicator description.'),
+        unit_of_measure STRING OPTIONS (description = 'The unit of measure for the indicator.'),
+        source STRING OPTIONS (description = 'Data origin source.'),
+        name_frequency STRING OPTIONS (description = 'Frequency of the data.'),
+        coverage_name STRING OPTIONS (description = 'Coverage data (e.g. nation, state, etc.).'),
+        reach_type STRING OPTIONS (description = 'The type of reach.'),
+        reach_name STRING OPTIONS (description = 'Reach name.'),
+        index_time DATE OPTIONS (description = 'Period of the data point.'),
+        value NUMERIC OPTIONS (description = 'Indicator value.')
+      )
+      OPTIONS (
+        format = 'CSV',
+        uris = ['gs://{{kv("GCP_BUCKET_NAME")}}/sector_data.csv'],
+        skip_leading_rows = 1,
+        ignore_unknown_values = TRUE
+      );
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{secret('GCP_SERVICE_ACCOUNT')}}"
+      projectId: "{{kv('GCP_PROJECT_ID')}}"
+      location: "{{kv('GCP_LOCATION')}}"
+      bucket: "{{kv('GCP_BUCKET_NAME')}}"
