@@ -37,12 +37,14 @@ Before following this step you must have installed:
 ### Configure dlt
 2. Create a .dlt folder and a secrets.toml file inside (economic-sectors/.dlt/secrets.toml)
 3. Configure the just created secrets.toml with this structure:
-    [destination.postgres.credentials]
-    database = "sectors"
-    username = "example"
-    password = "example"
-    host = "localhost"
-    port = 5432
+`
+[destination.postgres.credentials]
+database = "sectors"
+username = "example"
+password = "example"
+host = "localhost"
+port = 5432
+`
 
 ### Configure Docker Compose with secrets
 4. Create a secrets folder and a db_user.txt file inside (economic-sectors/secrets/db_user.txt)
@@ -51,12 +53,14 @@ Before following this step you must have installed:
 
 ### Enviroment variables
 7. Create a .env file (or rename de .env_example) in the root directory for enviroments variables (docker compose will also read from this to mount Kestra service). The configuration is as it follows:
+`
     POSTGRES_USER=example
     POSTGRES_PASSWORD=example
     KESTRA_POSTGRES_USER=example
     KESTRA_POSTGRES_PASSWORD=Example1234
     KESTRA_USER=example@example.com
     KESTRA_PASSWORD=Example1234
+`
 
 ### Cloud configuration (GCP)
 8. Create a new GCP project
