@@ -5,7 +5,7 @@ This year, Argentina is facing an economic crisis (this is nothing new, regardle
 
 This project aims to solve that problem: using data from public institutions sources (but now consolidated in a single data system: https://datos.gob.ar/), it gives users a rapid overview of the real economic situation.  
 
-1. Check the sector and activity with the highest value.
+1. Check the sector and activity with the highest value.*
 2. Check the sector and activity with the lowest value.
 3. See how the real economy is distributed in Argentina (principal sectors and their production, and the main activities in each one).
 4. Observe the evolution of a sector over time since the beginning of data collection in the 20th century.
@@ -15,20 +15,27 @@ These functions and others are available via the data product in this project: a
 
 ## System architecture
 
-The system is based in a ETL pipeline: dlt is used to extract data from GitHub Release* and load it inside a local postgres database as backup or for testing. The transformed data is also uploaded to GCP Storage (using one bucket) and accesed via GCP BigQuery. The information is visualized then in a Looker Studio (now Data Studio) dashboard. The infrastructure is managed via Docker Compose which also contains Kestra as orchestrator for the stack and tasks process.
+The system is based in a ETL pipeline: dlt is used to extract data from GitHub Release** and load it inside a local postgres database as backup or for testing. The transformed data is also uploaded to GCP Storage (using one bucket) and accesed via GCP BigQuery. The information is visualized then in a Looker Studio (now Data Studio) dashboard. The infrastructure is managed via Docker Compose which also contains Kestra as orchestrator for the stack and tasks process.
 
 <div>
   <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/cloud/economic-sectors/diagrams/argentina-economic-sectors-arc.png"/>
 </div>
 
-The data flows is showed in this flowchart:
+## Basic informal flowchart
+
+The flow of data will go through these processes:
+
+<div>
+  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/cloud/economic-sectors/diagrams/data-flowchart.png"/>
+</div>
 
 ## Configuration (local setup)
 
 ### Basic requirements
-Before following this step you must have installed:
+
+The easiest way to replicate the setup is using GitHub CodeSpaces. Before following this steps you must have installed:
 - uv (i.e via pip) 
-- Docker (if you are in Windows you will need WSL or Hyper-V backend to run Docker in that O.S)
+- Docker (if you are using Windows you will need WSL or Hyper-V backend to run Docker in that O.S)
 
 ### Setup
 0. run uv sync (to create a isolated environment with required dependencies)
@@ -96,5 +103,10 @@ With this, the data will be loaded in the local database (you can check it using
 ## Data product 
 The dashboard is currently avalible in lecture mode at: [Argentina economic sectors dashboard](https://datastudio.google.com/reporting/7a47d125-83b1-48e0-a689-a9bed02a2e93)
 
+<div>
+  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/cloud/economic-sectors/diagrams/dashboard.jpg"/>
+</div>
+
 ## Considerations
-* The original data was obtained in [this source from Argentina public data](https://datos.gob.ar/dataset/ssprys-indicadores-sectoriales-provinciales). To avoid security issues, the data was 'moved' from the original source to a GitHub Release repository for demo purposes, as the source didn't have an SSL certificate during the development of the project. To avoid excessive complexity, the automation script used to check and load the data into the release is not part of the project. 
+* Due to the extremely high value of tobacco production in Argentina, this sector has been filtered to avoid significant differences in the data visualisation.
+** The original data was obtained in [this source from Argentina public data](https://datos.gob.ar/dataset/ssprys-indicadores-sectoriales-provinciales). To avoid security issues, the data was 'moved' from the original source to a GitHub Release repository for demo purposes, as the source didn't have an SSL certificate during the development of the project. To avoid excessive complexity, the automation script used to check and load the data into the release is not part of the project. 
