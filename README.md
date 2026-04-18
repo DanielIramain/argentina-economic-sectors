@@ -18,7 +18,7 @@ These functions and others are available via the data product in this project: a
 The system is based in a ETL pipeline: dlt is used to extract data from GitHub Release** and load it inside a local postgres database as backup or for testing. The transformed data is also uploaded to GCP Storage (using one bucket) and accesed via GCP BigQuery. The information is visualized then in a Looker Studio (now Data Studio) dashboard. The infrastructure is managed via Docker Compose which also contains Kestra as orchestrator for the stack and tasks process.
 
 <div>
-  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/cloud/economic-sectors/diagrams/argentina-economic-sectors-arc.png"/>
+  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/main/economic-sectors/diagrams/argentina-economic-sectors-arc.png"/>
 </div>
 
 ## Basic informal flowchart
@@ -26,7 +26,7 @@ The system is based in a ETL pipeline: dlt is used to extract data from GitHub R
 The flow of data will go through these processes:
 
 <div>
-  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/cloud/economic-sectors/diagrams/data-flowchart.png"/>
+  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/main/economic-sectors/diagrams/data-flowchart.png"/>
 </div>
 
 ## Configuration (local setup)
@@ -104,7 +104,7 @@ With this, the data will be loaded in the local database (you can check it using
 The dashboard is currently avalible in lecture mode at: [Argentina economic sectors dashboard](https://datastudio.google.com/reporting/7a47d125-83b1-48e0-a689-a9bed02a2e93)
 
 <div>
-  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/cloud/economic-sectors/diagrams/dashboard.jpg"/>
+  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/main/economic-sectors/diagrams/dashboard.jpg"/>
 </div>
 
 ## Considerations
