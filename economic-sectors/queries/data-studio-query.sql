@@ -1,0 +1,1 @@
+SELECT * FROM `sectors_dataset.external_sectors` WHERE sector_name != 'tobacco';
