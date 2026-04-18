@@ -14,7 +14,7 @@ services:
     volumes:
       - sectors_postgres_data:/var/lib/postgresql
     environment:
-      POSTGRES_USER: /run/secrets/db_user
+      POSTGRES_USER_FILE: /run/secrets/db_user
       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
       POSTGRES_DB: sectors
     ports:

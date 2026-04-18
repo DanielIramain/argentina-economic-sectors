@@ -6,7 +6,7 @@ tasks:
     type: io.kestra.plugin.core.kv.Set
     key: GCP_PROJECT_ID
     kvType: STRING
-    value: argentina-economic-sectors-example # Replace with your own project id (it has to be created in GCP before running the flow)
+    value: argentina-economic-sectors # Replace with your own project id (it has to be created in GCP before running the flow)
 
   - id: gcp_location
     type: io.kestra.plugin.core.kv.Set
