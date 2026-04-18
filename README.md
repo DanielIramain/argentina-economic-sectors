@@ -18,7 +18,7 @@ These functions and others are available via the data product in this project: a
 The system is based in a ETL pipeline: dlt is used to extract data from GitHub Release* and load it inside a local postgres database as backup or for testing. The transformed data is also uploaded to GCP Storage (using one bucket) and accesed via GCP BigQuery. The information is visualized then in a Looker Studio (now Data Studio) dashboard. The infrastructure is managed via Docker Compose which also contains Kestra as orchestrator for the stack and tasks process.
 
 <div>
-  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/main/diagrams/argentina-economic-sectors-arc.png"/>
+  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/cloud/economic-sectors/diagrams/argentina-economic-sectors-arc.png"/>
 </div>
 
 The data flows is showed in this flowchart:
