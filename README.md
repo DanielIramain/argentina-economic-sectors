@@ -13,12 +13,12 @@ This project aims to solve that problem: using data from public institutions sou
 
 These functions and others are available via the data product in this project: a dashboard that shows the economic status of the country on a single page.
 
-## system architecture
+## System architecture
 
 The system is based in a ETL pipeline: dlt is used to extract data from GitHub Release* and load it inside a local postgres database as backup or for testing. The transformed data is also uploaded to GCP Storage (using one bucket) and accesed via GCP BigQuery. The information is visualized then in a Looker Studio (now Data Studio) dashboard. The infrastructure is managed via Docker Compose which also contains Kestra as orchestrator for the stack and tasks process.
 
 <div>
-  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/main/diagrams/argentina-economic-sectors-arc.png"/>
+  <img src="https://github.com/DanielIramain/argentina-economic-sectors/blob/cloud/economic-sectors/diagrams/argentina-economic-sectors-arc.png"/>
 </div>
 
 The data flows is showed in this flowchart:
@@ -37,11 +37,12 @@ Before following this step you must have installed:
 ### Configure dlt
 2. Create a .dlt folder and a secrets.toml file inside (economic-sectors/.dlt/secrets.toml)
 3. Configure the just created secrets.toml with this structure:
-    [destination.postgres.credentials]
-    database = "sectors"
-    username = "example"
-    password = "example"
-    host = "localhost"
+
+    [destination.postgres.credentials]\
+    database = "sectors"\
+    username = "example"\
+    password = "example"\
+    host = "localhost"\
     port = 5432
 
 ### Configure Docker Compose with secrets
@@ -51,11 +52,12 @@ Before following this step you must have installed:
 
 ### Enviroment variables
 7. Create a .env file (or rename de .env_example) in the root directory for enviroments variables (docker compose will also read from this to mount Kestra service). The configuration is as it follows:
-    POSTGRES_USER=example
-    POSTGRES_PASSWORD=example
-    KESTRA_POSTGRES_USER=example
-    KESTRA_POSTGRES_PASSWORD=Example1234
-    KESTRA_USER=example@example.com
+
+    POSTGRES_USER=example\
+    POSTGRES_PASSWORD=example\
+    KESTRA_POSTGRES_USER=example\
+    KESTRA_POSTGRES_PASSWORD=Example1234\
+    KESTRA_USER=example@example.com\
     KESTRA_PASSWORD=Example1234
 
 ### Cloud configuration (GCP)
